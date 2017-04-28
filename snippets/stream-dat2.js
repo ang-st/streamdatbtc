@@ -1,17 +1,21 @@
 
 var BlockStream = require('blkdat-stream')
 var bitcoin = require('bitcore-lib')
-
 var MongoClient = require('mongodb').MongoClient
 var StreamQueue = require('streamqueue')
-
 var fs = require('fs')
 
+
+/*
 let doIndex = function (db, col, index) {
   let x = db.collection(col)
   return x.createIndex(index)
 }
-
+*/
+let createIndex = function (db) {
+  return Promise.resolve(db)
+}
+/*
 let createIndex = function (db) {
 //  console.log("Create Index")
   return doIndex(db, 'blocks', {time: 1})
@@ -32,7 +36,7 @@ let createIndex = function (db) {
     return Promise.reject(e)
   })
 }
-
+*/
 let mapblock = function (block, db, cb) {
   var dbTxs = db.collection('transactions')
   var txz = block.transactions.map(tx => {
@@ -68,6 +72,9 @@ let mapblock = function (block, db, cb) {
     })
 
     Vout.insertMany(vouts, (e, res) => {
+      if (e) {
+        console.log(e.toString())
+      }
       Vin.insertMany(vins, (e, res) => {
         return tx
       })
@@ -81,15 +88,18 @@ let mapblock = function (block, db, cb) {
   cb()
 }
 
-var url = 'mongodb://localhost:27017/blockexplorer'
+var url = 'mongodb://localhost:27017/blockexplorer2'
 
 let processDat = function (db, stream) {
   console.log('process', process.pid, 'starting job')
   var pipe = stream.done().pipe(new BlockStream())
+  let blockcount = 0
+  var blocks = db.collection('blocks')
   pipe.on('data', function (blockBuffer) {
     pipe.pause()
+    blockcount++
+    if (blockcount % 1000 === 0) { console.log(process.pid, 'processed', blockcount, ' blocks') }
     var B = bitcoin.Block.fromBuffer(blockBuffer).toJSON()
-    var blocks = db.collection('blocks')
     blocks.insert(B.header)
         .then((e, x) => {
           mapblock(B, db, function (e) {
@@ -109,7 +119,8 @@ let processDat = function (db, stream) {
   })
 
   pipe.on('error', e => {
-    console.log('Pipe error', e)
+    console.log('Pipe error', e.toString())
+    pipe.resume()
   })
 }
 let threadInsert = function (filesList) {
@@ -117,9 +128,14 @@ let threadInsert = function (filesList) {
 
   filesList.forEach(f => queue.queue(fs.createReadStream(f)))
   // queue.done()
+
+  // console.log(process.pid, queue)
   // console.log(queue)
   MongoClient.connect(url, function (err, db) {
-    if (err) return
+    if (err) {
+      console.log(process.pid, 'Err', err.toString())
+      return
+    }
     createIndex(db)
     .then(x => {
       return processDat(x, queue)

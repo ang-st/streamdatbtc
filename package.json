@@ -1,4 +1,4 @@
-{ 
+{
   "name": "parser-dat",
   "version": "1.0.0",
   "description": "",
@@ -13,8 +13,15 @@
     "bitcoinjs-lib": "^2.3.0",
     "bitcore-lib": "^0.13.19",
     "blkdat-stream": "github:bitcoinjs/blkdat-stream",
+    "bluebird": "^3.5.0",
+    "commander": "^2.9.0",
+    "elapsed-time": "0.0.1",
     "glob": "^7.1.1",
+    "graph.js": "^1.21.1",
+    "loadash": "0.0.1",
+    "lodash": "^4.17.4",
     "mongodb": "^2.2.24",
+    "redis": "^2.7.1",
     "streamqueue": "^1.1.1"
   }
 }
