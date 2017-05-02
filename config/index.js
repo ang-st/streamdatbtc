@@ -1,6 +1,6 @@
-
+let path = require('path')
 let config = {
-  blockchainPath: '../blockdat/',
+  blockchainPath: path.join(__dirname, '/../../blockdat/'),
   dataPath: '../data'
 }
 

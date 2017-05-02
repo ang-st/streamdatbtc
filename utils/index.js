@@ -1,47 +1,19 @@
-const _ = require('lodash')
-const glob = require('glob')
 const fs = require('fs')
-const numCPUs = require('os').cpus().length
 
-var BlockStream = require('blkdat-stream')
-var StreamQueue = require('streamqueue')
-let config = require('../config')
+let path = require('path')
+let modules = {}
 
-let buildFileList = function (args) {
-  return glob.sync(config.blockchainPath + '/blk' + args + '.dat', {})
+let interfaceNames = function () {
+  return Object.keys(modules)
 }
 
-let buildFileRange = function (start, stop) {
-  return _.range(start, stop).map(x => {
-    return config.blockchainPath + '/blk' + _.padStart(x, 5, '0') + '.dat'
-  })
-}
+modules._tools = {interfaceNames}
 
-let openStream = function (files) {
-  var queue = new StreamQueue({pauseFlowingStream: false, objectMode: true, resumeFlowingStream: false})
+fs.readdirSync(__dirname).filter(function (file) {
+  return (file.indexOf('.') !== 0) && (file !== 'index.js')
+}).forEach(function (file) {
+  var module = require(path.join(__dirname, file))
+  modules[module.name] = module
+})
 
-  files.forEach(f => queue.queue(fs.createReadStream(f)))
-  // queue.done()
-
-  return queue.done().pipe(new BlockStream())
-}
-
-let openOneStreamPerFile = function (files) {
-  return files.forEach(f => {
-    return { name: f, stream: fs.createReadStream(f), start: undefined, stop: undefined }
-  })
-}
-
-let getInfos = function () {
-  let files = buildFileList('*').length
-
-  return {
-    cpu: numCPUs,
-    config: config,
-    blockfile_count: files,
-    estimated_size: _.round(((files * 128) / 1024), 2) + ' Gb'
-
-  }
-}
-
-module.exports = { buildFileList, openStream, openOneStreamPerFile, buildFileRange, getInfos }
+module.exports = modules

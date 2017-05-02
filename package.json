@@ -22,6 +22,7 @@
     "lodash": "^4.17.4",
     "mongodb": "^2.2.24",
     "redis": "^2.7.1",
+    "sigma": "github:jacomyal/sigma.js",
     "streamqueue": "^1.1.1"
   }
 }

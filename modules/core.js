@@ -1,23 +1,18 @@
-let utils = require('../utils')
+let Block = require('../utils').Blockdat
 
-let getInfo = function (cmd, opts) {
-  console.log(JSON.stringify(utils.getInfos(), null, 4))
+function Core () {
+  this.blocks = new Block()
 }
 
-let doIndex = function (cms, opts) {
-  let blockFiles = utils.openOneStreamPerFile(opts)
+Core.prototype.info = function (cmd, opts) {
+  console.log(JSON.stringify(this.blocks.info(), null, 4))
+}
+
+Core.prototype.doIndex = function (cms, opts) {
+  let blockFiles = this.blocks.openOneStreamPerFile(opts)
   blockFiles.forEach(b => {
     console.log(b.name)
   })
 }
 
-module.exports = {
-  name: 'core',
-
-  methods: {
-    info: getInfo,
-    index: doIndex
-
-  }
-
-}
+module.exports = Core

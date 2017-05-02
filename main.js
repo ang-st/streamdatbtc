@@ -10,11 +10,14 @@ Object.keys(modules).forEach(modName => {
   let com = program.command(modName + ' <cmd> [subcmd...]')
 
   com.action((cmd, subcmd, opts) => {
-    if (Object.keys(modules[modName]).indexOf(cmd) > -1) {
-      let method = modules[modName][cmd]
+    let module = new modules[modName]()
+    let mlist = Object.keys(Object.getPrototypeOf(module))
+    if (mlist.indexOf(cmd) > -1) {
+      let method = module[cmd]
+      method = method.bind(module)
       method(subcmd, opts)
     } else {
-      console.log('[-] erreur invalid command ', modName, 'available commands : ', Object.keys(modules[modName]))
+      console.log('[-] erreur invalid command ', modName, 'available commands : ', mlist)
     }
   })
 })
